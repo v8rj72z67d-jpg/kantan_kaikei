@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#ffffff">
+<title>かんたんお会計 v1</title>
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;background:#f6f6f6;color:#222;font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif}
+  .app{max-width:520px;margin:auto;min-height:100vh;background:#fff;padding:20px 16px 40px}
+  h1{font-size:24px;margin:4px 0 18px}
+  h2{font-size:18px;margin:22px 0 10px}
+  .card{border:1px solid #ddd;border-radius:16px;padding:14px;margin-bottom:12px}
+  label{display:block;font-size:14px;font-weight:600;margin:10px 0 5px}
+  input{width:100%;padding:12px;border:1px solid #ccc;border-radius:10px;font-size:17px}
+  .row{display:flex;gap:8px;align-items:center}
+  .row input{flex:1}
+  button{border:0;border-radius:12px;padding:12px 16px;font-size:16px;font-weight:700;background:#222;color:white}
+  button.secondary{background:#eee;color:#222}
+  button.plus{width:52px;font-size:22px;padding:9px}
+  .item{display:grid;grid-template-columns:1fr 82px 52px;gap:8px;align-items:center;margin:9px 0}
+  .item input{padding:10px}
+  .qty{display:flex;align-items:center;gap:5px}
+  .qty button{width:36px;padding:8px 0}
+  .summary{font-size:18px}
+  .line{display:flex;justify-content:space-between;margin:8px 0}
+  .total{font-size:28px;font-weight:800;border-top:2px solid #222;padding-top:12px;margin-top:12px}
+  .change{font-size:26px;font-weight:800}
+  .actions{display:flex;gap:8px;margin-top:14px}
+  .actions button{flex:1}
+  .note{font-size:12px;color:#666;line-height:1.6}
+</style>
+</head>
+<body>
+<div class="app">
+  <h1>🍷 かんたんお会計 v1</h1>
+
+  <div class="card">
+    <h2 style="margin-top:0">料金設定</h2>
+    <label>セット料金</label>
+    <input id="setPrice" type="number" inputmode="numeric" value="3000">
+
+    <label>ドリンク1杯</label>
+    <input id="drinkPrice" type="number" inputmode="numeric" value="1000">
+
+    <label>延長30分</label>
+    <input id="extendPrice" type="number" inputmode="numeric" value="1500">
+
+    <label>サービス料・税（合計に対する割合）</label>
+    <div class="row">
+      <input id="rate" type="number" inputmode="decimal" value="10" step="0.1">
+      <span>%</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2 style="margin-top:0">お会計内容</h2>
+
+    <div class="item">
+      <div>セット</div>
+      <div class="qty"><button type="button" class="secondary" data-action="qty" data-type="set" data-delta="-1">−</button><span id="setQty">1</span><button type="button" data-action="qty" data-type="set" data-delta="1">＋</button></div>
+      <div></div>
+    </div>
+
+    <div class="item">
+      <div>ドリンク</div>
+      <div class="qty"><button type="button" class="secondary" data-action="qty" data-type="drink" data-delta="-1">−</button><span id="drinkQty">0</span><button type="button" data-action="qty" data-type="drink" data-delta="1">＋</button></div>
+      <div></div>
+    </div>
+
+    <div class="item">
+      <div>延長30分</div>
+      <div class="qty"><button type="button" class="secondary" data-action="qty" data-type="extend" data-delta="-1">−</button><span id="extendQty">0</span><button type="button" data-action="qty" data-type="extend" data-delta="1">＋</button></div>
+      <div></div>
+    </div>
+
+    <h2>その他</h2>
+    <div id="others"></div>
+    <button type="button" class="secondary" id="addOtherBtn">＋ その他料金を追加</button>
+  </div>
+
+  <div class="card summary">
+    <div class="line"><span>小計</span><strong id="subtotal">¥0</strong></div>
+    <div class="line"><span>サービス料・税</span><strong id="fee">¥0</strong></div>
+    <div class="line total"><span>合計</span><span id="total">¥0</span></div>
+
+    <label>お預かり金額</label>
+    <input id="paid" type="number" inputmode="numeric" placeholder="例：10000" oninput="calculate()">
+
+    <div class="line" style="margin-top:18px"><span>お釣り</span><span class="change" id="change">¥0</span></div>
+  </div>
+
+  <div class="actions">
+    <button onclick="resetAll()">新しい会計</button>
+    <button class="secondary" onclick="window.print()">印刷</button>
+  </div>
+
+  <p class="note">
+    ※これは試作品です。実際のお店の料金・税・サービス料・端数処理・割引・カード手数料などのルールは、お店の正式な計算方法に合わせて設定・確認してください。
+  </p>
+</div>
+
+<script>
+"use strict";
+
+let qty = {set:1, drink:0, extend:0};
+let otherId = 0;
+
+const yen = n => "¥" + Math.round(n).toLocaleString("ja-JP");
+
+function changeQty(type, delta) {
+  qty[type] = Math.max(0, qty[type] + delta);
+  const el = document.getElementById(type + "Qty");
+  if (el) el.textContent = qty[type];
+  calculate();
+}
+
+function addOther(name="", price="") {
+  otherId++;
+  const id = otherId;
+  const div = document.createElement("div");
+  div.className = "item";
+  div.id = "other-" + id;
+
+  const nameInput = document.createElement("input");
+  nameInput.placeholder = "項目名";
+  nameInput.value = name;
+
+  const priceInput = document.createElement("input");
+  priceInput.className = "other-price";
+  priceInput.type = "number";
+  priceInput.inputMode = "numeric";
+  priceInput.placeholder = "金額";
+  priceInput.value = price;
+  priceInput.addEventListener("input", calculate);
+
+  const removeBtn = document.createElement("button");
+  removeBtn.type = "button";
+  removeBtn.className = "secondary";
+  removeBtn.textContent = "×";
+  removeBtn.addEventListener("click", () => removeOther(id));
+
+  div.append(nameInput, priceInput, removeBtn);
+  document.getElementById("others").appendChild(div);
+  calculate();
+}
+
+function removeOther(id) {
+  const el = document.getElementById("other-" + id);
+  if (el) el.remove();
+  calculate();
+}
+
+function calculate() {
+  const set = Number(document.getElementById("setPrice").value) || 0;
+  const drink = Number(document.getElementById("drinkPrice").value) || 0;
+  const ext = Number(document.getElementById("extendPrice").value) || 0;
+  const rate = Number(document.getElementById("rate").value) || 0;
+
+  let subtotal = set * qty.set + drink * qty.drink + ext * qty.extend;
+  document.querySelectorAll(".other-price").forEach(x => {
+    subtotal += Number(x.value) || 0;
+  });
+
+  const fee = Math.round(subtotal * rate / 100);
+  const total = subtotal + fee;
+  const paid = Number(document.getElementById("paid").value) || 0;
+
+  document.getElementById("subtotal").textContent = yen(subtotal);
+  document.getElementById("fee").textContent = yen(fee);
+  document.getElementById("total").textContent = yen(total);
+  document.getElementById("change").textContent =
+    paid >= total ? yen(paid - total) : "不足 " + yen(total - paid);
+}
+
+function resetAll() {
+  qty = {set:1, drink:0, extend:0};
+  ["set","drink","extend"].forEach(t => {
+    document.getElementById(t + "Qty").textContent = qty[t];
+  });
+  document.getElementById("paid").value = "";
+  document.getElementById("others").innerHTML = "";
+  calculate();
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  document.querySelectorAll('[data-action="qty"]').forEach(btn => {
+    btn.addEventListener("click", () => {
+      changeQty(btn.dataset.type, Number(btn.dataset.delta));
+    });
+  });
+
+  document.getElementById("addOtherBtn").addEventListener("click", () => addOther());
+  document.getElementById("printBtn").addEventListener("click", () => window.print());
+
+  ["setPrice","drinkPrice","extendPrice","rate","paid"].forEach(id => {
+    document.getElementById(id).addEventListener("input", calculate);
+  });
+
+  calculate();
+});
+</script>
+</body>
+</html>
