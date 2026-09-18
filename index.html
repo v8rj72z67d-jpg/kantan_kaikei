@@ -2,204 +2,184 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#ffffff">
-<title>かんたんお会計 v1</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>かんたんお会計</title>
 <style>
-  *{box-sizing:border-box}
-  body{margin:0;background:#f6f6f6;color:#222;font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif}
-  .app{max-width:520px;margin:auto;min-height:100vh;background:#fff;padding:20px 16px 40px}
-  h1{font-size:24px;margin:4px 0 18px}
-  h2{font-size:18px;margin:22px 0 10px}
-  .card{border:1px solid #ddd;border-radius:16px;padding:14px;margin-bottom:12px}
-  label{display:block;font-size:14px;font-weight:600;margin:10px 0 5px}
-  input{width:100%;padding:12px;border:1px solid #ccc;border-radius:10px;font-size:17px}
-  .row{display:flex;gap:8px;align-items:center}
-  .row input{flex:1}
-  button{border:0;border-radius:12px;padding:12px 16px;font-size:16px;font-weight:700;background:#222;color:white}
-  button.secondary{background:#eee;color:#222}
-  button.plus{width:52px;font-size:22px;padding:9px}
-  .item{display:grid;grid-template-columns:1fr 82px 52px;gap:8px;align-items:center;margin:9px 0}
-  .item input{padding:10px}
-  .qty{display:flex;align-items:center;gap:5px}
-  .qty button{width:36px;padding:8px 0}
-  .summary{font-size:18px}
-  .line{display:flex;justify-content:space-between;margin:8px 0}
-  .total{font-size:28px;font-weight:800;border-top:2px solid #222;padding-top:12px;margin-top:12px}
-  .change{font-size:26px;font-weight:800}
-  .actions{display:flex;gap:8px;margin-top:14px}
-  .actions button{flex:1}
-  .note{font-size:12px;color:#666;line-height:1.6}
+*{box-sizing:border-box}body{margin:0;background:#f5f5f7;color:#222;font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue",sans-serif}main{max-width:680px;margin:auto;padding:16px 13px 40px}h1{font-size:25px;margin:5px 4px 16px}.card{background:#fff;border-radius:18px;padding:15px;margin:11px 0;box-shadow:0 1px 5px #0001}h2{font-size:18px;margin:0 0 12px}.row{display:flex;align-items:center;gap:10px;padding:7px 0}.name{flex:1;font-weight:700}.qty{display:flex;align-items:center;gap:8px}.qty button{width:48px;height:48px;border:0;border-radius:14px;background:#e9e9ee;font-size:28px;touch-action:manipulation}.qty span{width:30px;text-align:center;font-size:20px;font-weight:800}input,select{width:100%;font-size:18px;padding:12px;border:1px solid #d1d1d6;border-radius:12px;background:#fff}label{display:block;font-weight:700;margin:11px 0 6px}.settings{display:grid;grid-template-columns:1fr 118px;gap:7px 9px}.settings label{margin:auto 0}details{margin-top:7px}summary{font-weight:800;padding:11px 0;cursor:pointer;list-style:none}summary::-webkit-details-marker{display:none}summary:after{content:"＋";float:right;font-size:22px}details[open] summary:after{content:"−"}.line{display:grid;grid-template-columns:1fr 95px 44px;gap:7px;margin:8px 0}.line button{border:0;border-radius:12px;background:#e9e9ee;font-size:22px}.add{width:100%;border:0;border-radius:12px;padding:11px;font-size:16px;font-weight:700;background:#e9e9ee}.selected{margin:8px 0;padding:9px;background:#fafafa;border-radius:12px}.money{display:flex;justify-content:space-between;padding:7px 0}.total{font-size:25px;font-weight:800;border-top:1px solid #ddd;margin-top:8px;padding-top:12px}.buttons{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:14px}.action{border:0;border-radius:14px;padding:14px;font-size:17px;font-weight:800;background:#222;color:#fff}.secondary{background:#e9e9ee;color:#222}.small{font-size:13px;color:#666}@media print{.no-print{display:none!important}body{background:#fff}.card{box-shadow:none}main{padding:0}}
 </style>
 </head>
 <body>
-<div class="app">
-  <h1>🍷 かんたんお会計 v1</h1>
+<main>
+<h1>🍷 かんたんお会計</h1>
 
-  <div class="card">
-    <h2 style="margin-top:0">料金設定</h2>
-    <label>セット料金</label>
-    <input id="setPrice" type="number" inputmode="numeric" value="3000">
+<section class="card no-print">
+<h2>料金設定</h2>
+<label>セット料金（円）</label>
+<input id="setPrice" type="number" inputmode="numeric" value="3000" min="0">
 
-    <label>ドリンク1杯</label>
-    <input id="drinkPrice" type="number" inputmode="numeric" value="1000">
-
-    <label>延長30分</label>
-    <input id="extendPrice" type="number" inputmode="numeric" value="1500">
-
-    <label>サービス料・税（合計に対する割合）</label>
-    <div class="row">
-      <input id="rate" type="number" inputmode="decimal" value="10" step="0.1">
-      <span>%</span>
-    </div>
-  </div>
-
-  <div class="card">
-    <h2 style="margin-top:0">お会計内容</h2>
-
-    <div class="item">
-      <div>セット</div>
-      <div class="qty"><button type="button" class="secondary" data-action="qty" data-type="set" data-delta="-1">−</button><span id="setQty">1</span><button type="button" data-action="qty" data-type="set" data-delta="1">＋</button></div>
-      <div></div>
-    </div>
-
-    <div class="item">
-      <div>ドリンク</div>
-      <div class="qty"><button type="button" class="secondary" data-action="qty" data-type="drink" data-delta="-1">−</button><span id="drinkQty">0</span><button type="button" data-action="qty" data-type="drink" data-delta="1">＋</button></div>
-      <div></div>
-    </div>
-
-    <div class="item">
-      <div>延長30分</div>
-      <div class="qty"><button type="button" class="secondary" data-action="qty" data-type="extend" data-delta="-1">−</button><span id="extendQty">0</span><button type="button" data-action="qty" data-type="extend" data-delta="1">＋</button></div>
-      <div></div>
-    </div>
-
-    <h2>その他</h2>
-    <div id="others"></div>
-    <button type="button" class="secondary" id="addOtherBtn">＋ その他料金を追加</button>
-  </div>
-
-  <div class="card summary">
-    <div class="line"><span>小計</span><strong id="subtotal">¥0</strong></div>
-    <div class="line"><span>サービス料・税</span><strong id="fee">¥0</strong></div>
-    <div class="line total"><span>合計</span><span id="total">¥0</span></div>
-
-    <label>お預かり金額</label>
-    <input id="paid" type="number" inputmode="numeric" placeholder="例：10000" oninput="calculate()">
-
-    <div class="line" style="margin-top:18px"><span>お釣り</span><span class="change" id="change">¥0</span></div>
-  </div>
-
-  <div class="actions">
-    <button onclick="resetAll()">新しい会計</button>
-    <button class="secondary" onclick="window.print()">印刷</button>
-  </div>
-
-  <p class="note">
-    ※これは試作品です。実際のお店の料金・税・サービス料・端数処理・割引・カード手数料などのルールは、お店の正式な計算方法に合わせて設定・確認してください。
-  </p>
+<div class="settings">
+<label>炭酸</label><input id="sodaPrice" type="number" inputmode="numeric" value="0" min="0">
+<label>水</label><input id="waterPrice" type="number" inputmode="numeric" value="0" min="0">
+<label>抹茶（大）</label><input id="matchaPrice" type="number" inputmode="numeric" value="0" min="0">
+<label>ウーロン（大）</label><input id="oolongPrice" type="number" inputmode="numeric" value="0" min="0">
+<label>JAVAティー（大）</label><input id="javaPrice" type="number" inputmode="numeric" value="0" min="0">
+<label>氷</label><input id="icePrice" type="number" inputmode="numeric" value="0" min="0">
+<label>カラオケ</label><input id="karaokePrice" type="number" inputmode="numeric" value="0" min="0">
 </div>
 
+<label>サービス料・税（%）</label>
+<input id="rate" type="number" inputmode="decimal" value="10" min="0" step="0.1">
+
+<details>
+<summary>料理メニューを設定</summary>
+<div id="master"></div>
+<button class="add" id="addMaster" type="button">＋ 料理を追加</button>
+<p class="small">料理名と値段を登録しておくと、会計ではプルダウンから選べます。</p>
+</details>
+</section>
+
+<section class="card">
+<h2>お会計内容</h2>
+
+<div class="row"><div class="name">セット</div><div class="qty"><button data-m="set">−</button><span id="setQ">1</span><button data-p="set">＋</button></div></div>
+<div class="row"><div class="name">炭酸</div><div class="qty"><button data-m="soda">−</button><span id="sodaQ">0</span><button data-p="soda">＋</button></div></div>
+<div class="row"><div class="name">水</div><div class="qty"><button data-m="water">−</button><span id="waterQ">0</span><button data-p="water">＋</button></div></div>
+<div class="row"><div class="name">抹茶（大）</div><div class="qty"><button data-m="matcha">−</button><span id="matchaQ">0</span><button data-p="matcha">＋</button></div></div>
+<div class="row"><div class="name">ウーロン（大）</div><div class="qty"><button data-m="oolong">−</button><span id="oolongQ">0</span><button data-p="oolong">＋</button></div></div>
+<div class="row"><div class="name">JAVAティー（大）</div><div class="qty"><button data-m="java">−</button><span id="javaQ">0</span><button data-p="java">＋</button></div></div>
+<div class="row"><div class="name">氷</div><div class="qty"><button data-m="ice">−</button><span id="iceQ">0</span><button data-p="ice">＋</button></div></div>
+<div class="row"><div class="name">カラオケ</div><div class="qty"><button data-m="karaoke">−</button><span id="karaokeQ">0</span><button data-p="karaoke">＋</button></div></div>
+
+<details>
+<summary>料理を追加</summary>
+<div id="foods"></div>
+<button class="add" id="addFood" type="button">＋ 料理を追加</button>
+</details>
+
+<details>
+<summary>その他を追加</summary>
+<div id="others"></div>
+<button class="add" id="addOther" type="button">＋ その他を追加</button>
+<p class="small">必要なだけ追加できます。</p>
+</details>
+</section>
+
+<section class="card">
+<h2>お会計</h2>
+<div class="money"><span>小計</span><strong id="subtotal">¥0</strong></div>
+<div class="money"><span>サービス料・税</span><strong id="fee">¥0</strong></div>
+<div class="money total"><span>合計</span><strong id="total">¥0</strong></div>
+<label>お預かり（円）</label>
+<input id="received" type="number" inputmode="numeric" value="0" min="0">
+<div class="money total"><span>おつり</span><strong id="change">¥0</strong></div>
+<div class="buttons no-print">
+<button class="action secondary" id="reset">新規会計</button>
+<button class="action" id="print">印刷</button>
+</div>
+</section>
+</main>
+
 <script>
-"use strict";
+(function(){
+const $=id=>document.getElementById(id);
+const yen=n=>"¥"+Math.round(n).toLocaleString("ja-JP");
+const num=id=>Math.max(0,Number($(id).value)||0);
+const items=[
+["soda","炭酸"],["water","水"],["matcha","抹茶（大）"],
+["oolong","ウーロン（大）"],["java","JAVAティー（大）"],
+["ice","氷"],["karaoke","カラオケ"]
+];
+let q={set:1,soda:0,water:0,matcha:0,oolong:0,java:0,ice:0,karaoke:0};
+let foods=[],others=[];
+let master=JSON.parse(localStorage.getItem("okaikei_master")||"null");
+if(!master)master=[
+{name:"枝豆",price:500},{name:"フライドポテト",price:600},
+{name:"唐揚げ",price:800},{name:"たこ焼き",price:800},
+{name:"焼きそば",price:800},{name:"ピザ",price:1200},
+{name:"おつまみ盛り合わせ",price:1000}
+];
 
-let qty = {set:1, drink:0, extend:0};
-let otherId = 0;
+function esc(s){return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/"/g,"&quot;")}
 
-const yen = n => "¥" + Math.round(n).toLocaleString("ja-JP");
-
-function changeQty(type, delta) {
-  qty[type] = Math.max(0, qty[type] + delta);
-  const el = document.getElementById(type + "Qty");
-  if (el) el.textContent = qty[type];
-  calculate();
+function renderMaster(){
+$("master").innerHTML=master.map((m,i)=>`
+<div class="line">
+<input data-mn="${i}" value="${esc(m.name)}" placeholder="料理名">
+<input data-mp="${i}" type="number" inputmode="numeric" value="${m.price||0}" placeholder="円">
+<button data-md="${i}">×</button>
+</div>`).join("");
 }
 
-function addOther(name="", price="") {
-  otherId++;
-  const id = otherId;
-  const div = document.createElement("div");
-  div.className = "item";
-  div.id = "other-" + id;
-
-  const nameInput = document.createElement("input");
-  nameInput.placeholder = "項目名";
-  nameInput.value = name;
-
-  const priceInput = document.createElement("input");
-  priceInput.className = "other-price";
-  priceInput.type = "number";
-  priceInput.inputMode = "numeric";
-  priceInput.placeholder = "金額";
-  priceInput.value = price;
-  priceInput.addEventListener("input", calculate);
-
-  const removeBtn = document.createElement("button");
-  removeBtn.type = "button";
-  removeBtn.className = "secondary";
-  removeBtn.textContent = "×";
-  removeBtn.addEventListener("click", () => removeOther(id));
-
-  div.append(nameInput, priceInput, removeBtn);
-  document.getElementById("others").appendChild(div);
-  calculate();
+function renderFoods(){
+$("foods").innerHTML=foods.map((f,i)=>{
+let o='<option value="">料理を選択</option>';
+master.forEach((m,j)=>o+=`<option value="${j}" ${f.i===j?"selected":""}>${esc(m.name)}　¥${Number(m.price||0).toLocaleString("ja-JP")}</option>`);
+return `<div class="selected"><select data-fi="${i}">${o}</select></div>`;
+}).join("");
 }
 
-function removeOther(id) {
-  const el = document.getElementById("other-" + id);
-  if (el) el.remove();
-  calculate();
+function renderOthers(){
+$("others").innerHTML=others.map((o,i)=>`
+<div class="line">
+<input data-on="${i}" value="${esc(o.name)}" placeholder="項目名">
+<input data-op="${i}" type="number" inputmode="numeric" value="${o.price||0}" placeholder="円">
+<button data-od="${i}">×</button>
+</div>`).join("");
 }
 
-function calculate() {
-  const set = Number(document.getElementById("setPrice").value) || 0;
-  const drink = Number(document.getElementById("drinkPrice").value) || 0;
-  const ext = Number(document.getElementById("extendPrice").value) || 0;
-  const rate = Number(document.getElementById("rate").value) || 0;
-
-  let subtotal = set * qty.set + drink * qty.drink + ext * qty.extend;
-  document.querySelectorAll(".other-price").forEach(x => {
-    subtotal += Number(x.value) || 0;
-  });
-
-  const fee = Math.round(subtotal * rate / 100);
-  const total = subtotal + fee;
-  const paid = Number(document.getElementById("paid").value) || 0;
-
-  document.getElementById("subtotal").textContent = yen(subtotal);
-  document.getElementById("fee").textContent = yen(fee);
-  document.getElementById("total").textContent = yen(total);
-  document.getElementById("change").textContent =
-    paid >= total ? yen(paid - total) : "不足 " + yen(total - paid);
+function calc(){
+Object.keys(q).forEach(k=>{if($(k+"Q"))$(k+"Q").textContent=q[k]});
+let sub=q.set*num("setPrice");
+items.forEach(x=>sub+=q[x[0]]*num(x[0]+"Price"));
+foods.forEach(f=>{if(f.i!=null)sub+=Number(master[f.i]?.price)||0});
+others.forEach(o=>sub+=Number(o.price)||0);
+let fee=Math.round(sub*num("rate")/100),total=sub+fee;
+$("subtotal").textContent=yen(sub);
+$("fee").textContent=yen(fee);
+$("total").textContent=yen(total);
+$("change").textContent=yen(Math.max(0,num("received")-total));
 }
 
-function resetAll() {
-  qty = {set:1, drink:0, extend:0};
-  ["set","drink","extend"].forEach(t => {
-    document.getElementById(t + "Qty").textContent = qty[t];
-  });
-  document.getElementById("paid").value = "";
-  document.getElementById("others").innerHTML = "";
-  calculate();
+document.addEventListener("click",e=>{
+if(e.target.dataset.p){let k=e.target.dataset.p;q[k]++;calc()}
+if(e.target.dataset.m){let k=e.target.dataset.m;q[k]=Math.max(k==="set"?1:0,q[k]-1);calc()}
+if(e.target.dataset.md!==undefined){
+let i=+e.target.dataset.md;master.splice(i,1);
+foods.forEach(f=>{if(f.i===i)f.i=null;else if(f.i>i)f.i--});
+localStorage.setItem("okaikei_master",JSON.stringify(master));renderMaster();renderFoods();calc();
 }
-
-document.addEventListener("DOMContentLoaded", () => {
-  document.querySelectorAll('[data-action="qty"]').forEach(btn => {
-    btn.addEventListener("click", () => {
-      changeQty(btn.dataset.type, Number(btn.dataset.delta));
-    });
-  });
-
-  document.getElementById("addOtherBtn").addEventListener("click", () => addOther());
-  document.getElementById("printBtn").addEventListener("click", () => window.print());
-
-  ["setPrice","drinkPrice","extendPrice","rate","paid"].forEach(id => {
-    document.getElementById(id).addEventListener("input", calculate);
-  });
-
-  calculate();
+if(e.target.dataset.od!==undefined){others.splice(+e.target.dataset.od,1);renderOthers();calc()}
 });
+
+document.addEventListener("input",e=>{
+if(e.target.dataset.mn!==undefined)master[+e.target.dataset.mn].name=e.target.value;
+if(e.target.dataset.mp!==undefined)master[+e.target.dataset.mp].price=Number(e.target.value)||0;
+if(e.target.dataset.on!==undefined)others[+e.target.dataset.on].name=e.target.value;
+if(e.target.dataset.op!==undefined)others[+e.target.dataset.op].price=Number(e.target.value)||0;
+localStorage.setItem("okaikei_master",JSON.stringify(master));
+calc();
+});
+
+document.addEventListener("change",e=>{
+if(e.target.dataset.fi!==undefined){
+let i=+e.target.dataset.fi;
+foods[i].i=e.target.value===""?null:+e.target.value;
+calc();
+}
+});
+
+$("addMaster").onclick=()=>{master.push({name:"",price:0});localStorage.setItem("okaikei_master",JSON.stringify(master));renderMaster()};
+$("addFood").onclick=()=>{foods.push({i:null});renderFoods()};
+$("addOther").onclick=()=>{others.push({name:"",price:0});renderOthers()};
+$("reset").onclick=()=>{
+q={set:1,soda:0,water:0,matcha:0,oolong:0,java:0,ice:0,karaoke:0};
+foods=[];others=[];$("received").value=0;renderFoods();renderOthers();calc();
+};
+$("print").onclick=()=>window.print();
+
+renderMaster();renderFoods();renderOthers();calc();
+})();
 </script>
 </body>
 </html>
