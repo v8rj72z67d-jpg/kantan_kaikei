@@ -6,7 +6,25 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <title>かんたんお会計</title>
 <style>
-*{box-sizing:border-box}body{margin:0;background:#f5f5f7;color:#222;font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue",sans-serif}main{max-width:680px;margin:auto;padding:16px 13px 40px}h1{font-size:25px;margin:5px 4px 16px}.card{background:#fff;border-radius:18px;padding:15px;margin:11px 0;box-shadow:0 1px 5px #0001}h2{font-size:18px;margin:0 0 12px}.row{display:flex;align-items:center;gap:10px;padding:7px 0}.name{flex:1;font-weight:700}.qty{display:flex;align-items:center;gap:8px}.qty button{width:48px;height:48px;border:0;border-radius:14px;background:#e9e9ee;font-size:28px;touch-action:manipulation}.qty span{width:30px;text-align:center;font-size:20px;font-weight:800}input,select{width:100%;font-size:18px;padding:12px;border:1px solid #d1d1d6;border-radius:12px;background:#fff}label{display:block;font-weight:700;margin:11px 0 6px}.settings{display:grid;grid-template-columns:1fr 118px;gap:7px 9px}.settings label{margin:auto 0}details{margin-top:7px}summary{font-weight:800;padding:11px 0;cursor:pointer;list-style:none}summary::-webkit-details-marker{display:none}summary:after{content:"＋";float:right;font-size:22px}details[open] summary:after{content:"−"}.line{display:grid;grid-template-columns:1fr 95px 44px;gap:7px;margin:8px 0}.line button{border:0;border-radius:12px;background:#e9e9ee;font-size:22px}.add{width:100%;border:0;border-radius:12px;padding:11px;font-size:16px;font-weight:700;background:#e9e9ee}.selected{margin:8px 0;padding:9px;background:#fafafa;border-radius:12px}.money{display:flex;justify-content:space-between;padding:7px 0}.total{font-size:25px;font-weight:800;border-top:1px solid #ddd;margin-top:8px;padding-top:12px}.buttons{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:14px}.action{border:0;border-radius:14px;padding:14px;font-size:17px;font-weight:800;background:#222;color:#fff}.secondary{background:#e9e9ee;color:#222}.small{font-size:13px;color:#666}@media print{.no-print{display:none!important}body{background:#fff}.card{box-shadow:none}main{padding:0}}
+*{box-sizing:border-box}body{margin:0;background:#f5f5f7;color:#222;font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue",sans-serif}
+main{max-width:680px;margin:auto;padding:16px 13px 40px}h1{font-size:25px;margin:5px 4px 16px}
+.card{background:#fff;border-radius:18px;padding:15px;margin:11px 0;box-shadow:0 1px 5px #0001}h2{font-size:18px;margin:0 0 12px}
+.row{display:flex;align-items:center;gap:10px;padding:7px 0}.name{flex:1;font-weight:700}
+.qty{display:flex;align-items:center;gap:8px}.qty button{width:48px;height:48px;border:0;border-radius:14px;background:#e9e9ee;font-size:28px;touch-action:manipulation}
+.qty span{width:30px;text-align:center;font-size:20px;font-weight:800}
+input,select{width:100%;font-size:18px;padding:12px;border:1px solid #d1d1d6;border-radius:12px;background:#fff}
+label{display:block;font-weight:700;margin:11px 0 6px}
+.setting-line{display:grid;grid-template-columns:1fr 120px 44px;gap:7px;margin:8px 0}
+.setting-line button,.line button{border:0;border-radius:12px;background:#e9e9ee;font-size:22px}
+.add{width:100%;border:0;border-radius:12px;padding:12px;font-size:16px;font-weight:700;background:#e9e9ee;margin-top:5px}
+.note{font-size:13px;color:#666;line-height:1.5}details{margin-top:7px}
+summary{font-weight:800;padding:11px 0;cursor:pointer;list-style:none}summary::-webkit-details-marker{display:none}
+summary:after{content:"＋";float:right;font-size:22px}details[open] summary:after{content:"−"}
+.line{display:grid;grid-template-columns:1fr 95px 44px;gap:7px;margin:8px 0}.selected{margin:8px 0;padding:9px;background:#fafafa;border-radius:12px}
+.money{display:flex;justify-content:space-between;padding:7px 0}.total{font-size:25px;font-weight:800;border-top:1px solid #ddd;margin-top:8px;padding-top:12px}
+.buttons{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:14px}.action{border:0;border-radius:14px;padding:14px;font-size:17px;font-weight:800;background:#222;color:#fff}
+.secondary{background:#e9e9ee;color:#222}.small{font-size:14px;color:#777;padding:8px 0}
+@media print{.no-print{display:none!important}body{background:#fff}.card{box-shadow:none}main{padding:0}}
 </style>
 </head>
 <body>
@@ -18,15 +36,12 @@
 <label>セット料金（円）</label>
 <input id="setPrice" type="number" inputmode="numeric" value="3000" min="0">
 
-<div class="settings">
-<label>炭酸</label><input id="sodaPrice" type="number" inputmode="numeric" value="0" min="0">
-<label>水</label><input id="waterPrice" type="number" inputmode="numeric" value="0" min="0">
-<label>抹茶（大）</label><input id="matchaPrice" type="number" inputmode="numeric" value="0" min="0">
-<label>ウーロン（大）</label><input id="oolongPrice" type="number" inputmode="numeric" value="0" min="0">
-<label>JAVAティー（大）</label><input id="javaPrice" type="number" inputmode="numeric" value="0" min="0">
-<label>氷</label><input id="icePrice" type="number" inputmode="numeric" value="0" min="0">
-<label>カラオケ</label><input id="karaokePrice" type="number" inputmode="numeric" value="0" min="0">
-</div>
+<details open>
+<summary>料金項目を設定</summary>
+<p class="note">ここで追加した項目は、お会計内容には「項目名＋個数」だけ表示されます。値段は設定した金額から自動計算します。</p>
+<div id="chargeSettings"></div>
+<button class="add" id="addCharge" type="button">＋ 料金項目を追加</button>
+</details>
 
 <label>サービス料・税（%）</label>
 <input id="rate" type="number" inputmode="decimal" value="10" min="0" step="0.1">
@@ -35,21 +50,14 @@
 <summary>料理メニューを設定</summary>
 <div id="master"></div>
 <button class="add" id="addMaster" type="button">＋ 料理を追加</button>
-<p class="small">料理名と値段を登録しておくと、会計ではプルダウンから選べます。</p>
+<p class="note">料理名と値段を登録すると、会計ではプルダウンから選べます。</p>
 </details>
 </section>
 
 <section class="card">
 <h2>お会計内容</h2>
-
-<div class="row"><div class="name">セット</div><div class="qty"><button data-m="set">−</button><span id="setQ">1</span><button data-p="set">＋</button></div></div>
-<div class="row"><div class="name">炭酸</div><div class="qty"><button data-m="soda">−</button><span id="sodaQ">0</span><button data-p="soda">＋</button></div></div>
-<div class="row"><div class="name">水</div><div class="qty"><button data-m="water">−</button><span id="waterQ">0</span><button data-p="water">＋</button></div></div>
-<div class="row"><div class="name">抹茶（大）</div><div class="qty"><button data-m="matcha">−</button><span id="matchaQ">0</span><button data-p="matcha">＋</button></div></div>
-<div class="row"><div class="name">ウーロン（大）</div><div class="qty"><button data-m="oolong">−</button><span id="oolongQ">0</span><button data-p="oolong">＋</button></div></div>
-<div class="row"><div class="name">JAVAティー（大）</div><div class="qty"><button data-m="java">−</button><span id="javaQ">0</span><button data-p="java">＋</button></div></div>
-<div class="row"><div class="name">氷</div><div class="qty"><button data-m="ice">−</button><span id="iceQ">0</span><button data-p="ice">＋</button></div></div>
-<div class="row"><div class="name">カラオケ</div><div class="qty"><button data-m="karaoke">−</button><span id="karaokeQ">0</span><button data-p="karaoke">＋</button></div></div>
+<div class="row"><div class="name">セット</div><div class="qty"><button data-m="set" type="button">−</button><span id="setQ">1</span><button data-p="set" type="button">＋</button></div></div>
+<div id="chargeRows"></div>
 
 <details>
 <summary>料理を追加</summary>
@@ -61,7 +69,7 @@
 <summary>その他を追加</summary>
 <div id="others"></div>
 <button class="add" id="addOther" type="button">＋ その他を追加</button>
-<p class="small">必要なだけ追加できます。</p>
+<p class="note">必要なだけ追加できます。</p>
 </details>
 </section>
 
@@ -74,8 +82,8 @@
 <input id="received" type="number" inputmode="numeric" value="0" min="0">
 <div class="money total"><span>おつり</span><strong id="change">¥0</strong></div>
 <div class="buttons no-print">
-<button class="action secondary" id="reset">新規会計</button>
-<button class="action" id="print">印刷</button>
+<button class="action secondary" id="reset" type="button">新規会計</button>
+<button class="action" id="print" type="button">印刷</button>
 </div>
 </section>
 </main>
@@ -85,100 +93,138 @@
 const $=id=>document.getElementById(id);
 const yen=n=>"¥"+Math.round(n).toLocaleString("ja-JP");
 const num=id=>Math.max(0,Number($(id).value)||0);
-const items=[
-["soda","炭酸"],["water","水"],["matcha","抹茶（大）"],
-["oolong","ウーロン（大）"],["java","JAVAティー（大）"],
-["ice","氷"],["karaoke","カラオケ"]
-];
-let q={set:1,soda:0,water:0,matcha:0,oolong:0,java:0,ice:0,karaoke:0};
-let foods=[],others=[];
-let master=JSON.parse(localStorage.getItem("okaikei_master")||"null");
-if(!master)master=[
-{name:"枝豆",price:500},{name:"フライドポテト",price:600},
-{name:"唐揚げ",price:800},{name:"たこ焼き",price:800},
-{name:"焼きそば",price:800},{name:"ピザ",price:1200},
-{name:"おつまみ盛り合わせ",price:1000}
-];
 
-function esc(s){return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/"/g,"&quot;")}
+let charges=JSON.parse(localStorage.getItem("okaikei_charges")||"null");
+if(!Array.isArray(charges)||!charges.length){
+  charges=[
+    {name:"炭酸",price:0},{name:"水",price:0},{name:"抹茶（大）",price:0},
+    {name:"ウーロン（大）",price:0},{name:"JAVAティー（大）",price:0},
+    {name:"氷",price:0},{name:"カラオケ",price:0}
+  ];
+}
+let master=JSON.parse(localStorage.getItem("okaikei_master")||"null");
+if(!Array.isArray(master)){
+  master=[
+    {name:"枝豆",price:500},{name:"フライドポテト",price:600},
+    {name:"唐揚げ",price:800},{name:"たこ焼き",price:800},
+    {name:"焼きそば",price:800},{name:"ピザ",price:1200},
+    {name:"おつまみ盛り合わせ",price:1000}
+  ];
+}
+let q={set:1},foods=[],others=[];
+
+function saveCharges(){localStorage.setItem("okaikei_charges",JSON.stringify(charges))}
+function saveMaster(){localStorage.setItem("okaikei_master",JSON.stringify(master))}
+function esc(s){return String(s??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/"/g,"&quot;")}
+
+function renderChargeSettings(){
+  $("chargeSettings").innerHTML=charges.map((c,i)=>`
+  <div class="setting-line">
+    <input data-cn="${i}" value="${esc(c.name)}" placeholder="項目名">
+    <input data-cprice="${i}" type="number" inputmode="numeric" value="${c.price||0}" min="0" placeholder="円">
+    <button data-cdel="${i}" type="button">×</button>
+  </div>`).join("") || '<div class="small">料金項目がありません。「＋ 料金項目を追加」から追加できます。</div>';
+}
+
+function renderChargeRows(){
+  $("chargeRows").innerHTML=charges.map((c,i)=>{
+    const k="c"+i;if(q[k]==null)q[k]=0;
+    return `<div class="row">
+      <div class="name">${esc(c.name||"（項目名未設定）")}</div>
+      <div class="qty">
+        <button data-cminus="${i}" type="button">−</button>
+        <span id="cq_${i}">${q[k]}</span>
+        <button data-cplus="${i}" type="button">＋</button>
+      </div>
+    </div>`;
+  }).join("");
+}
 
 function renderMaster(){
-$("master").innerHTML=master.map((m,i)=>`
-<div class="line">
-<input data-mn="${i}" value="${esc(m.name)}" placeholder="料理名">
-<input data-mp="${i}" type="number" inputmode="numeric" value="${m.price||0}" placeholder="円">
-<button data-md="${i}">×</button>
-</div>`).join("");
+  $("master").innerHTML=master.map((m,i)=>`
+  <div class="line">
+    <input data-mn="${i}" value="${esc(m.name)}" placeholder="料理名">
+    <input data-mp="${i}" type="number" inputmode="numeric" value="${m.price||0}" min="0" placeholder="円">
+    <button data-md="${i}" type="button">×</button>
+  </div>`).join("") || '<div class="small">料理メニューがありません。</div>';
 }
 
 function renderFoods(){
-$("foods").innerHTML=foods.map((f,i)=>{
-let o='<option value="">料理を選択</option>';
-master.forEach((m,j)=>o+=`<option value="${j}" ${f.i===j?"selected":""}>${esc(m.name)}　¥${Number(m.price||0).toLocaleString("ja-JP")}</option>`);
-return `<div class="selected"><select data-fi="${i}">${o}</select></div>`;
-}).join("");
+  $("foods").innerHTML=foods.map((f,i)=>{
+    let opts='<option value="">料理を選択</option>';
+    master.forEach((m,j)=>opts+=`<option value="${j}" ${f.i===j?"selected":""}>${esc(m.name)}　¥${Number(m.price||0).toLocaleString("ja-JP")}</option>`);
+    return `<div class="selected"><select data-fi="${i}">${opts}</select></div>`;
+  }).join("");
 }
 
 function renderOthers(){
-$("others").innerHTML=others.map((o,i)=>`
-<div class="line">
-<input data-on="${i}" value="${esc(o.name)}" placeholder="項目名">
-<input data-op="${i}" type="number" inputmode="numeric" value="${o.price||0}" placeholder="円">
-<button data-od="${i}">×</button>
-</div>`).join("");
+  $("others").innerHTML=others.map((o,i)=>`
+  <div class="line">
+    <input data-on="${i}" value="${esc(o.name)}" placeholder="項目名">
+    <input data-op="${i}" type="number" inputmode="numeric" value="${o.price||0}" min="0" placeholder="円">
+    <button data-od="${i}" type="button">×</button>
+  </div>`).join("");
 }
 
 function calc(){
-Object.keys(q).forEach(k=>{if($(k+"Q"))$(k+"Q").textContent=q[k]});
-let sub=q.set*num("setPrice");
-items.forEach(x=>sub+=q[x[0]]*num(x[0]+"Price"));
-foods.forEach(f=>{if(f.i!=null)sub+=Number(master[f.i]?.price)||0});
-others.forEach(o=>sub+=Number(o.price)||0);
-let fee=Math.round(sub*num("rate")/100),total=sub+fee;
-$("subtotal").textContent=yen(sub);
-$("fee").textContent=yen(fee);
-$("total").textContent=yen(total);
-$("change").textContent=yen(Math.max(0,num("received")-total));
+  let sub=q.set*num("setPrice");
+  charges.forEach((c,i)=>sub+=(q["c"+i]||0)*Number(c.price||0));
+  foods.forEach(f=>{if(f.i!=null)sub+=Number(master[f.i]?.price)||0});
+  others.forEach(o=>sub+=Number(o.price)||0);
+  const fee=Math.round(sub*num("rate")/100),total=sub+fee;
+  $("subtotal").textContent=yen(sub);$("fee").textContent=yen(fee);$("total").textContent=yen(total);
+  $("change").textContent=yen(Math.max(0,num("received")-total));
+  $("setQ").textContent=q.set;
+  charges.forEach((c,i)=>{const el=$("cq_"+i);if(el)el.textContent=q["c"+i]||0});
 }
 
 document.addEventListener("click",e=>{
-if(e.target.dataset.p){let k=e.target.dataset.p;q[k]++;calc()}
-if(e.target.dataset.m){let k=e.target.dataset.m;q[k]=Math.max(k==="set"?1:0,q[k]-1);calc()}
-if(e.target.dataset.md!==undefined){
-let i=+e.target.dataset.md;master.splice(i,1);
-foods.forEach(f=>{if(f.i===i)f.i=null;else if(f.i>i)f.i--});
-localStorage.setItem("okaikei_master",JSON.stringify(master));renderMaster();renderFoods();calc();
-}
-if(e.target.dataset.od!==undefined){others.splice(+e.target.dataset.od,1);renderOthers();calc()}
+  const t=e.target;
+  if(t.dataset.p){const k=t.dataset.p;q[k]=(q[k]||0)+1;calc()}
+  if(t.dataset.m){const k=t.dataset.m;q[k]=Math.max(k==="set"?1:0,(q[k]||0)-1);calc()}
+  if(t.dataset.cplus!==undefined){const i=+t.dataset.cplus,k="c"+i;q[k]=(q[k]||0)+1;calc()}
+  if(t.dataset.cminus!==undefined){const i=+t.dataset.cminus,k="c"+i;q[k]=Math.max(0,(q[k]||0)-1);calc()}
+  if(t.dataset.cdel!==undefined){
+    const i=+t.dataset.cdel;delete q["c"+i];charges.splice(i,1);
+    saveCharges();renderChargeSettings();renderChargeRows();calc();
+  }
+  if(t.dataset.md!==undefined){
+    const i=+t.dataset.md;master.splice(i,1);
+    foods.forEach(f=>{if(f.i===i)f.i=null;else if(f.i>i)f.i--});
+    saveMaster();renderMaster();renderFoods();calc();
+  }
+  if(t.dataset.od!==undefined){others.splice(+t.dataset.od,1);renderOthers();calc()}
 });
 
 document.addEventListener("input",e=>{
-if(e.target.dataset.mn!==undefined)master[+e.target.dataset.mn].name=e.target.value;
-if(e.target.dataset.mp!==undefined)master[+e.target.dataset.mp].price=Number(e.target.value)||0;
-if(e.target.dataset.on!==undefined)others[+e.target.dataset.on].name=e.target.value;
-if(e.target.dataset.op!==undefined)others[+e.target.dataset.op].price=Number(e.target.value)||0;
-localStorage.setItem("okaikei_master",JSON.stringify(master));
-calc();
+  const t=e.target;
+  if(t.dataset.cn!==undefined){charges[+t.dataset.cn].name=t.value;saveCharges();renderChargeRows()}
+  if(t.dataset.cprice!==undefined){charges[+t.dataset.cprice].price=Number(t.value)||0;saveCharges();calc()}
+  if(t.dataset.mn!==undefined){master[+t.dataset.mn].name=t.value;saveMaster();renderFoods()}
+  if(t.dataset.mp!==undefined){master[+t.dataset.mp].price=Number(t.value)||0;saveMaster();renderFoods();calc()}
+  if(t.dataset.on!==undefined)others[+t.dataset.on].name=t.value;
+  if(t.dataset.op!==undefined)others[+t.dataset.op].price=Number(t.value)||0;
+  calc();
 });
 
 document.addEventListener("change",e=>{
-if(e.target.dataset.fi!==undefined){
-let i=+e.target.dataset.fi;
-foods[i].i=e.target.value===""?null:+e.target.value;
-calc();
-}
+  if(e.target.dataset.fi!==undefined){const i=+e.target.dataset.fi;foods[i].i=e.target.value===""?null:+e.target.value;calc()}
 });
 
-$("addMaster").onclick=()=>{master.push({name:"",price:0});localStorage.setItem("okaikei_master",JSON.stringify(master));renderMaster()};
+$("addCharge").onclick=()=>{
+  charges.push({name:"新しい項目",price:0});q["c"+(charges.length-1)]=0;
+  saveCharges();renderChargeSettings();renderChargeRows();calc();
+};
+$("addMaster").onclick=()=>{master.push({name:"",price:0});saveMaster();renderMaster()};
 $("addFood").onclick=()=>{foods.push({i:null});renderFoods()};
 $("addOther").onclick=()=>{others.push({name:"",price:0});renderOthers()};
 $("reset").onclick=()=>{
-q={set:1,soda:0,water:0,matcha:0,oolong:0,java:0,ice:0,karaoke:0};
-foods=[];others=[];$("received").value=0;renderFoods();renderOthers();calc();
+  q={set:1};charges.forEach((c,i)=>q["c"+i]=0);foods=[];others=[];$("received").value=0;
+  renderChargeRows();renderFoods();renderOthers();calc();
 };
 $("print").onclick=()=>window.print();
 
-renderMaster();renderFoods();renderOthers();calc();
+renderChargeSettings();renderChargeRows();renderMaster();renderFoods();renderOthers();calc();
 })();
 </script>
 </body>
