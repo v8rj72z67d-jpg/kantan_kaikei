@@ -1,1 +1,0 @@
-# kantan_kaikei
