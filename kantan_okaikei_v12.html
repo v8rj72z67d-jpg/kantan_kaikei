@@ -1,0 +1,411 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>かんたんお会計</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#f5f5f7;color:#222;font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue",sans-serif}
+main{max-width:680px;margin:auto;padding:16px 13px 40px}h1{font-size:25px;margin:5px 4px 16px}
+.card{background:#fff;border-radius:18px;padding:15px;margin:11px 0;box-shadow:0 1px 5px #0001}h2{font-size:18px;margin:0 0 12px}
+.row{display:flex;align-items:center;gap:10px;padding:7px 0}.name{flex:1;font-weight:700}
+.qty{display:flex;align-items:center;gap:8px}.qty button{width:48px;height:48px;border:0;border-radius:14px;background:#e9e9ee;font-size:28px;touch-action:manipulation}
+.qty span{width:30px;text-align:center;font-size:20px;font-weight:800}
+input,select{width:100%;font-size:18px;padding:12px;border:1px solid #d1d1d6;border-radius:12px;background:#fff}
+label{display:block;font-weight:700;margin:11px 0 6px}
+.setting-line{display:grid;grid-template-columns:1fr 120px 44px;gap:7px;margin:8px 0}
+.setting-line button,.line button{border:0;border-radius:12px;background:#e9e9ee;font-size:22px}
+.add{width:100%;border:0;border-radius:12px;padding:12px;font-size:16px;font-weight:700;background:#e9e9ee;margin-top:5px}
+.note{font-size:13px;color:#666;line-height:1.5}details{margin-top:7px}
+summary{font-weight:800;padding:11px 0;cursor:pointer;list-style:none}summary::-webkit-details-marker{display:none}
+summary:after{content:"＋";float:right;font-size:22px}details[open] summary:after{content:"−"}
+.line{display:grid;grid-template-columns:1fr 95px 44px;gap:7px;margin:8px 0}.selected{margin:8px 0;padding:9px;background:#fafafa;border-radius:12px}
+.picker{padding:9px}
+.candidate-list{margin-top:7px;border:1px solid #ddd;border-radius:12px;overflow:hidden;background:#fff}
+.candidate{width:100%;display:flex;justify-content:space-between;align-items:center;border:0;border-bottom:1px solid #eee;background:#fff;padding:13px 12px;font-size:16px;text-align:left;touch-action:manipulation}
+.candidate:last-child{border-bottom:0}
+.selected-item{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:13px 12px;background:#fff;border:1px solid #ddd;border-radius:12px}
+.selected-item .item-name{font-weight:700;font-size:17px}
+.cancel-btn{flex:0 0 auto;border:0;border-radius:10px;padding:9px 12px;background:#eee;color:#555;font-size:14px}
+.candidate:active{background:#eee}
+.candidate strong{font-size:14px;color:#555}
+.no-candidate{padding:12px;color:#888;font-size:14px}
+.money{display:flex;justify-content:space-between;padding:7px 0}.total{font-size:25px;font-weight:800;border-top:1px solid #ddd;margin-top:8px;padding-top:12px}
+.buttons{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:14px}.action{border:0;border-radius:14px;padding:14px;font-size:17px;font-weight:800;background:#222;color:#fff}
+.secondary{background:#e9e9ee;color:#222}.small{font-size:14px;color:#777;padding:8px 0}
+
+.tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;background:#f0f0f2;padding:4px;border-radius:13px;margin-bottom:14px}
+.tab{border:0;border-radius:10px;padding:10px 4px;background:transparent;font-weight:800;font-size:14px;color:#666}
+.tab.active{background:#fff;color:#222;box-shadow:0 1px 4px #0001}
+.tabpanel{display:none}.tabpanel.active{display:block}
+@media print{.no-print{display:none!important}body{background:#fff}.card{box-shadow:none}main{padding:0}}
+</style>
+</head>
+<body>
+<main>
+<h1>🍷 かんたんお会計</h1>
+
+<section class="card no-print">
+<h2>料金設定</h2>
+<div class="tabs" id="settingsTabs">
+  <button class="tab active" data-tab="basic" type="button">基本</button>
+  <button class="tab" data-tab="charges" type="button">料金項目</button>
+  <button class="tab" data-tab="food" type="button">料理</button>
+  <button class="tab" data-tab="bottle" type="button">ボトル</button>
+</div>
+
+<div class="tabpanel active" id="tab-basic">
+  <label>セット料金（円）</label>
+  <input id="setPrice" type="number" inputmode="numeric" value="3000" min="0">
+  <label>サービス料・税（%）</label>
+  <input id="rate" type="number" inputmode="decimal" value="10" min="0" step="0.1">
+</div>
+
+<div class="tabpanel" id="tab-charges">
+  <p class="note">追加した項目は、お会計内容に「項目名＋個数」だけ表示されます。</p>
+  <div id="chargeSettings"></div>
+  <button class="add" id="addCharge" type="button">＋ 料金項目を追加</button>
+</div>
+
+<div class="tabpanel" id="tab-food">
+  <div id="master"></div>
+  <button class="add" id="addMaster" type="button">＋ 料理を追加</button>
+  <p class="note">料理名を入力すると候補として検索できます。</p>
+</div>
+
+<div class="tabpanel" id="tab-bottle">
+  <div id="bottleMaster"></div>
+  <button class="add" id="addBottleMaster" type="button">＋ ボトルを追加</button>
+  <p class="note">ボトル名を入力すると候補として検索できます。</p>
+</div>
+</section>
+
+<section class="card">
+<h2>お会計内容</h2>
+<div class="row"><div class="name">セット</div><div class="qty"><button data-m="set" type="button">−</button><span id="setQ">1</span><button data-p="set" type="button">＋</button></div></div>
+<div id="chargeRows"></div>
+
+<details>
+<summary>料理を追加</summary>
+<div id="foods"></div>
+<button class="add" id="addFood" type="button">＋ 料理を追加</button>
+</details>
+<details>
+<summary>ボトルを追加</summary>
+<div id="bottles"></div>
+<button class="add" id="addBottle" type="button">＋ ボトルを追加</button>
+</details>
+<details>
+<summary>その他を追加</summary>
+<div id="others"></div>
+<button class="add" id="addOther" type="button">＋ その他を追加</button>
+<p class="note">必要なだけ追加できます。</p>
+</details>
+</section>
+
+<section class="card">
+<h2>お会計</h2>
+<div class="money"><span>小計</span><strong id="subtotal">¥0</strong></div>
+<div class="money"><span>サービス料・税</span><strong id="fee">¥0</strong></div>
+<div class="money total"><span>合計</span><strong id="total">¥0</strong></div>
+<label>お預かり（円）</label>
+<input id="received" type="number" inputmode="numeric" value="0" min="0">
+<div class="money total"><span>おつり</span><strong id="change">¥0</strong></div>
+<div class="buttons no-print">
+<button class="action secondary" id="reset" type="button">新規会計</button>
+<button class="action" id="print" type="button">印刷</button>
+</div>
+</section>
+</main>
+
+<script>
+(function(){
+const $=id=>document.getElementById(id);
+const yen=n=>"¥"+Math.round(n).toLocaleString("ja-JP");
+const num=id=>Math.max(0,Number($(id).value)||0);
+
+let charges=JSON.parse(localStorage.getItem("okaikei_charges")||"null");
+if(!Array.isArray(charges)||!charges.length){
+  charges=[
+    {name:"炭酸",price:0},{name:"水",price:0},{name:"抹茶（大）",price:0},
+    {name:"ウーロン（大）",price:0},{name:"JAVAティー（大）",price:0},
+    {name:"氷",price:0},{name:"カラオケ",price:0}
+  ];
+}
+let master=JSON.parse(localStorage.getItem("okaikei_master")||"null");
+if(!Array.isArray(master)){
+  master=[
+    {name:"枝豆",price:500},{name:"フライドポテト",price:600},
+    {name:"唐揚げ",price:800},{name:"たこ焼き",price:800},
+    {name:"焼きそば",price:800},{name:"ピザ",price:1200},
+    {name:"おつまみ盛り合わせ",price:1000}
+  ];
+}
+let bottleMaster=JSON.parse(localStorage.getItem("okaikei_bottle_master")||"null");
+if(!Array.isArray(bottleMaster)){
+  bottleMaster=[
+    {name:"ボトルA",price:5000},{name:"ボトルB",price:8000},{name:"ボトルC",price:10000}
+  ];
+}
+let q={set:1},foods=[],bottles=[],others=[];
+
+function saveCharges(){localStorage.setItem("okaikei_charges",JSON.stringify(charges))}
+function saveMaster(){localStorage.setItem("okaikei_master",JSON.stringify(master))}
+function esc(s){return String(s??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/"/g,"&quot;")}
+
+function renderChargeSettings(){
+  $("chargeSettings").innerHTML=charges.map((c,i)=>`
+  <div class="setting-line">
+    <input data-cn="${i}" value="${esc(c.name)}" placeholder="項目名">
+    <input data-cprice="${i}" type="number" inputmode="numeric" value="${c.price||0}" min="0" placeholder="円">
+    <button data-cdel="${i}" type="button">×</button>
+  </div>`).join("") || '<div class="small">料金項目がありません。「＋ 料金項目を追加」から追加できます。</div>';
+}
+
+function renderChargeRows(){
+  $("chargeRows").innerHTML=charges.map((c,i)=>{
+    const k="c"+i;if(q[k]==null)q[k]=0;
+    return `<div class="row">
+      <div class="name">${esc(c.name||"（項目名未設定）")}</div>
+      <div class="qty">
+        <button data-cminus="${i}" type="button">−</button>
+        <span id="cq_${i}">${q[k]}</span>
+        <button data-cplus="${i}" type="button">＋</button>
+      </div>
+    </div>`;
+  }).join("");
+}
+
+function renderMaster(){
+  $("master").innerHTML=master.map((m,i)=>`
+  <div class="line">
+    <input data-mn="${i}" value="${esc(m.name)}" placeholder="料理名">
+    <input data-mp="${i}" type="number" inputmode="numeric" value="${m.price||0}" min="0" placeholder="円">
+    <button data-md="${i}" type="button">×</button>
+  </div>`).join("") || '<div class="small">料理メニューがありません。</div>';
+}
+
+function renderBottleMaster(){
+  $("bottleMaster").innerHTML=bottleMaster.map((m,i)=>`
+  <div class="line">
+    <input data-bmn="${i}" value="${esc(m.name)}" placeholder="ボトル名">
+    <input data-bmp="${i}" type="number" inputmode="numeric" value="${m.price||0}" min="0" placeholder="円">
+    <button data-bmd="${i}" type="button">×</button>
+  </div>`).join("");
+}
+function renderLists(){
+  // iPhone Safariのdatalistに頼らず、アプリ内候補を表示します。
+}
+
+function foodCandidates(query){
+  const q=String(query||"").trim().toLowerCase();
+  return master.filter(m=>!q || String(m.name||"").toLowerCase().includes(q));
+}
+
+function bottleCandidates(query){
+  const q=String(query||"").trim().toLowerCase();
+  return bottleMaster.filter(m=>!q || String(m.name||"").toLowerCase().includes(q));
+}
+
+function renderFoods(){
+  $("foods").innerHTML=foods.map((f,i)=>{
+    if(f.name){
+      const m=master.find(x=>x.name===f.name);
+      return `
+      <div class="selected picker">
+        <div class="selected-item">
+          <span class="item-name">${esc(f.name)}</span>
+          <button class="cancel-btn" type="button" data-food-cancel="${i}">取り消し</button>
+        </div>
+      </div>`;
+    }
+    const list=foodCandidates(f.name);
+    return `
+    <div class="selected picker">
+      <input
+        data-fi-search="${i}"
+        value=""
+        placeholder="料理名を検索"
+        autocomplete="off"
+      >
+      <div class="candidate-list">
+        ${list.map(m=>`
+          <button class="candidate" type="button"
+            data-food-select="${i}" data-food-name="${esc(m.name)}">
+            <span>${esc(m.name)}</span><strong>${yen(m.price)}</strong>
+          </button>
+        `).join("") || '<div class="no-candidate">候補がありません</div>'}
+      </div>
+    </div>`;
+  }).join("");
+}
+
+function renderBottles(){
+  $("bottles").innerHTML=bottles.map((b,i)=>{
+    if(b.name){
+      return `
+      <div class="selected picker">
+        <div class="selected-item">
+          <span class="item-name">${esc(b.name)}</span>
+          <button class="cancel-btn" type="button" data-bottle-cancel="${i}">取り消し</button>
+        </div>
+      </div>`;
+    }
+    const list=bottleCandidates(b.name);
+    return `
+    <div class="selected picker">
+      <input
+        data-bi-search="${i}"
+        value=""
+        placeholder="ボトル名を検索"
+        autocomplete="off"
+      >
+      <div class="candidate-list">
+        ${list.map(m=>`
+          <button class="candidate" type="button"
+            data-bottle-select="${i}" data-bottle-name="${esc(m.name)}">
+            <span>${esc(m.name)}</span><strong>${yen(m.price)}</strong>
+          </button>
+        `).join("") || '<div class="no-candidate">候補がありません</div>'}
+      </div>
+    </div>`;
+  }).join("");
+}
+
+function renderOthers(){
+  $("others").innerHTML=others.map((o,i)=>`
+  <div class="line">
+    <input data-on="${i}" value="${esc(o.name)}" placeholder="項目名">
+    <input data-op="${i}" type="number" inputmode="numeric" value="${o.price||0}" min="0" placeholder="円">
+    <button data-od="${i}" type="button">×</button>
+  </div>`).join("");
+}
+
+function calc(){
+  let sub=q.set*num("setPrice");
+  charges.forEach((c,i)=>sub+=(q["c"+i]||0)*Number(c.price||0));
+  foods.forEach(f=>{const m=master.find(x=>x.name===f.name);if(m)sub+=Number(m.price)||0});
+  bottles.forEach(b=>{const m=bottleMaster.find(x=>x.name===b.name);if(m)sub+=Number(m.price)||0});
+  others.forEach(o=>sub+=Number(o.price)||0);
+  const fee=Math.round(sub*num("rate")/100),total=sub+fee;
+  $("subtotal").textContent=yen(sub);$("fee").textContent=yen(fee);$("total").textContent=yen(total);
+  $("change").textContent=yen(Math.max(0,num("received")-total));
+  $("setQ").textContent=q.set;
+  charges.forEach((c,i)=>{const el=$("cq_"+i);if(el)el.textContent=q["c"+i]||0});
+}
+
+document.querySelectorAll(".tab").forEach(btn=>{
+  btn.addEventListener("click",()=>{
+    document.querySelectorAll(".tab").forEach(b=>b.classList.remove("active"));
+    document.querySelectorAll(".tabpanel").forEach(p=>p.classList.remove("active"));
+    btn.classList.add("active");
+    $("tab-"+btn.dataset.tab).classList.add("active");
+  });
+});
+document.addEventListener("click",e=>{
+  const t=e.target.closest("button") || e.target;
+  if(t.dataset.p){const k=t.dataset.p;q[k]=(q[k]||0)+1;calc()}
+  if(t.dataset.m){const k=t.dataset.m;q[k]=Math.max(k==="set"?1:0,(q[k]||0)-1);calc()}
+  if(t.dataset.cplus!==undefined){const i=+t.dataset.cplus,k="c"+i;q[k]=(q[k]||0)+1;calc()}
+  if(t.dataset.cminus!==undefined){const i=+t.dataset.cminus,k="c"+i;q[k]=Math.max(0,(q[k]||0)-1);calc()}
+  if(t.dataset.cdel!==undefined){
+    const i=+t.dataset.cdel;delete q["c"+i];charges.splice(i,1);
+    saveCharges();renderChargeSettings();renderChargeRows();calc();
+  }
+  if(t.dataset.md!==undefined){
+    const i=+t.dataset.md;master.splice(i,1);
+    saveMaster();renderMaster();renderLists();renderFoods();calc();
+  }
+  if(t.dataset.bmd!==undefined){
+    const i=+t.dataset.bmd;bottleMaster.splice(i,1);
+    localStorage.setItem("okaikei_bottle_master",JSON.stringify(bottleMaster));
+    renderBottleMaster();renderLists();renderBottles();calc();
+  }
+  if(t.dataset.foodSelect!==undefined){
+    const i=+t.dataset.foodSelect;
+    foods[i].name=t.dataset.foodName||"";
+    renderFoods();
+    calc();
+  }
+
+  if(t.dataset.bottleSelect!==undefined){
+    const i=+t.dataset.bottleSelect;
+    bottles[i].name=t.dataset.bottleName||"";
+    renderBottles();
+    calc();
+  }
+
+  if(t.dataset.foodCancel!==undefined){
+    const i=+t.dataset.foodCancel;
+    foods[i].name="";
+    renderFoods();
+    calc();
+  }
+
+  if(t.dataset.bottleCancel!==undefined){
+    const i=+t.dataset.bottleCancel;
+    bottles[i].name="";
+    renderBottles();
+    calc();
+  }
+
+  if(t.dataset.od!==undefined){others.splice(+t.dataset.od,1);renderOthers();calc()}
+});
+
+document.addEventListener("input",e=>{
+  const t=e.target;
+  if(t.dataset.cn!==undefined){charges[+t.dataset.cn].name=t.value;saveCharges();renderChargeRows()}
+  if(t.dataset.cprice!==undefined){charges[+t.dataset.cprice].price=Number(t.value)||0;saveCharges();calc()}
+  if(t.dataset.mn!==undefined){master[+t.dataset.mn].name=t.value;saveMaster();renderLists();renderFoods()}
+  if(t.dataset.mp!==undefined){master[+t.dataset.mp].price=Number(t.value)||0;saveMaster();renderLists();calc()}
+  if(t.dataset.bmn!==undefined){bottleMaster[+t.dataset.bmn].name=t.value;localStorage.setItem("okaikei_bottle_master",JSON.stringify(bottleMaster));renderLists();renderBottles()}
+  if(t.dataset.bmp!==undefined){bottleMaster[+t.dataset.bmp].price=Number(t.value)||0;localStorage.setItem("okaikei_bottle_master",JSON.stringify(bottleMaster));renderLists();calc()}
+  if(t.dataset.fiSearch!==undefined){
+    const i=+t.dataset.fiSearch;
+    foods[i].name=t.value;
+    renderFoods();
+    const input=document.querySelector(`[data-fi-search="${i}"]`);
+    if(input){
+      input.focus();
+      input.setSelectionRange(input.value.length,input.value.length);
+    }
+  }
+
+  if(t.dataset.biSearch!==undefined){
+    const i=+t.dataset.biSearch;
+    bottles[i].name=t.value;
+    renderBottles();
+    const input=document.querySelector(`[data-bi-search="${i}"]`);
+    if(input){
+      input.focus();
+      input.setSelectionRange(input.value.length,input.value.length);
+    }
+  }
+  if(t.dataset.on!==undefined)others[+t.dataset.on].name=t.value;
+  if(t.dataset.op!==undefined)others[+t.dataset.op].price=Number(t.value)||0;
+  calc();
+});
+
+document.addEventListener("change",e=>{if(e.target.dataset.fiSearch!==undefined||e.target.dataset.biSearch!==undefined)calc()});
+
+$("addCharge").onclick=()=>{
+  charges.push({name:"新しい項目",price:0});q["c"+(charges.length-1)]=0;
+  saveCharges();renderChargeSettings();renderChargeRows();calc();
+};
+$("addMaster").onclick=()=>{master.push({name:"",price:0});saveMaster();renderMaster();renderLists()};
+$("addBottleMaster").onclick=()=>{bottleMaster.push({name:"",price:0});localStorage.setItem("okaikei_bottle_master",JSON.stringify(bottleMaster));renderBottleMaster();renderLists()};
+$("addFood").onclick=()=>{foods.push({name:""});renderFoods()};
+$("addBottle").onclick=()=>{bottles.push({name:""});renderBottles()};
+$("addOther").onclick=()=>{others.push({name:"",price:0});renderOthers()};
+$("reset").onclick=()=>{
+  q={set:1};charges.forEach((c,i)=>q["c"+i]=0);foods=[];bottles=[];others=[];$("received").value=0;
+  renderChargeRows();renderFoods();renderBottles();renderOthers();calc();
+};
+$("print").onclick=()=>window.print();
+
+renderChargeSettings();renderChargeRows();renderMaster();renderBottleMaster();renderLists();renderFoods();renderBottles();renderOthers();calc();
+})();
+</script>
+</body>
+</html>
